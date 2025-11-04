@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+### My ignores
+/src/main/resources/jdbc.properties

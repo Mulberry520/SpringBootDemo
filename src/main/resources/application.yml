@@ -21,7 +21,7 @@ mybatis:
 
 server:
   address: 0.0.0.0
-  port: 8848
+  port: 8080
 
 
 app:
