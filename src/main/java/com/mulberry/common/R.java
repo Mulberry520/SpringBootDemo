@@ -9,20 +9,40 @@ public class R<T> {
     private String msg;
     private T data;
 
-    public static <T> R<T> success(T obj) {
-        R<T> r = new R<>();
-        r.data = obj;
-        r.code = 0;
-        r.msg = CommonConst.SUCCESS_RESULT;
+    private static <DATA> R<DATA> of(int code, String msg, DATA data) {
+        R<DATA> r = new R<>();
+        r.code = code;
+        r.msg = msg;
+        r.data = data;
         return r;
     }
 
-    public static <T> R<T> error(String msg) {
-        R<T> r = new R<>();
-        r.data = null;
-        r.code = 1;
-        r.msg = msg;
-        return r;
+    public static <DATA> R<DATA> success(int code, DATA data) {
+        return R.of(code, CommonConst.SUCCESS_RESULT, data);
+    }
+
+    public static <DATA> R<DATA> success(DATA data) {
+        return R.of(CommonConst.SUCCESS_CODE, CommonConst.SUCCESS_RESULT, data);
+    }
+
+    public static <DATA> R<DATA> success(String msg) {
+        return R.of(CommonConst.SUCCESS_CODE, msg, null);
+    }
+
+    public static <DATA> R<DATA> success() {
+        return R.of(CommonConst.SUCCESS_CODE, CommonConst.SUCCESS_RESULT, null);
+    }
+
+    public static <DATA> R<DATA> error(int code, String msg) {
+        return R.of(code, msg, null);
+    }
+
+    public static <DATA> R<DATA> error(String msg) {
+        return R.of(CommonConst.ERROR_CODE, msg, null);
+    }
+
+    public static <DATA> R<DATA> error() {
+        return R.of(CommonConst.ERROR_CODE, CommonConst.ERROR_RESULT, null);
     }
 
     public static <T> R<T> handlerResult(T result, String msg) {

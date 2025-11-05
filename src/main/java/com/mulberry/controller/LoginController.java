@@ -49,4 +49,9 @@ public class LoginController {
     public String profile(HttpSession session, Model model) {
         return "profile";
     }
+
+    @GetMapping("/test-file")
+    public String fileTest() {
+        return "upload";
+    }
 }
