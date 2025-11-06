@@ -9,6 +9,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public R<Void> handleException(Exception e) {
         // handler different exceptions...
+
         return R.error(e.getMessage());
     }
 }

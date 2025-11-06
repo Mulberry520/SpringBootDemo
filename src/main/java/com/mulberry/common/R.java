@@ -17,8 +17,8 @@ public class R<T> {
         return r;
     }
 
-    public static <DATA> R<DATA> success(int code, DATA data) {
-        return R.of(code, CommonConst.SUCCESS_RESULT, data);
+    public static <DATA> R<DATA> success(String msg, DATA data) {
+        return R.of(CommonConst.SUCCESS_CODE, msg, data);
     }
 
     public static <DATA> R<DATA> success(DATA data) {

@@ -4,19 +4,22 @@ import com.mulberry.common.R;
 import com.mulberry.dto.LoginDTO;
 import com.mulberry.dto.UserDTO;
 import com.mulberry.service.UserService;
+import com.mulberry.util.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    public UserController(PasswordEncoder passwordEncoder, UserService userService) {
+    public UserController(PasswordEncoder passwordEncoder, UserService userService, JwtUtil jwtUtil) {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/register")
@@ -39,11 +42,9 @@ public class UserController {
             return R.error("Not exists this user");
         }
 
-        String passwd = passwordEncoder.encode(user.getPassword());
-        if (!target.getPassword().equals(passwd)) {
+        if (!passwordEncoder.matches(user.getPassword(), target.getPassword())) {
             return R.error("Wrong password");
         }
-
-        return R.success("JWT token");
+        return R.success(jwtUtil.generateToken(name));
     }
 }

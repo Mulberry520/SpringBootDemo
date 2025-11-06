@@ -2,11 +2,11 @@ package com.mulberry.filter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 public class TimingFilter implements Filter {
-    private long startTime;
 
     @Override
     public void doFilter(
@@ -14,13 +14,13 @@ public class TimingFilter implements Filter {
             ServletResponse servletResponse,
             FilterChain filterChain
     ) throws IOException, ServletException {
-        this.startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        System.out.println(request.getRequestURI());
+        System.out.println("Request URL: " + request.getRequestURI());
 
         filterChain.doFilter(servletRequest, servletResponse);
 
-        long totalTime = System.currentTimeMillis() - this.startTime;
+        long totalTime = System.currentTimeMillis() - startTime;
         System.out.println("Total time = " + totalTime + "ms");
     }
 }

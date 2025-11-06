@@ -7,7 +7,7 @@ import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication
 @MapperScan("com.mulberry.mapper")
-@PropertySource("classpath:jdbc.properties")
+@PropertySource("classpath:secret.properties")
 public class SpringBootDemoApplication {
 
     public static void main(String[] args) {
