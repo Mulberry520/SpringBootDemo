@@ -25,8 +25,17 @@ public class UserServiceImpl implements UserService {
                 user.getUsername(),
                 user.getPassword(),
                 user.getNickname(),
-                user.getEmail(),
-                user.getUserPic()
+                user.getEmail()
+        );
+    }
+
+    @Override
+    public int updateBasicInfo(UserDTO user) {
+        return mapper.updateBasicInfo(
+                user.getUsername(),
+                user.getPassword(),
+                user.getNickname(),
+                user.getEmail()
         );
     }
 }

@@ -13,6 +13,6 @@ public class LoginDTO {
     private String username;
 
     @NotBlank
-    @Size(max = 64)
+    @Size(min = 6, max = 64)
     private String password;
 }

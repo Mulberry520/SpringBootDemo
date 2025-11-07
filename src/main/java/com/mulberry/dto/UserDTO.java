@@ -1,5 +1,6 @@
 package com.mulberry.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -12,7 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Data
-public class UserDTO implements UserDetails {
+public class UserDTO {
     @NotBlank
     @Size(min = 4, max = 16)
     @Pattern(regexp = "^[a-zA-Z0-9_]+$")
@@ -20,6 +21,7 @@ public class UserDTO implements UserDetails {
 
     @NotBlank
     @Size(min = 6, max = 64)
+//    @JsonIgnore
     private String password;
 
     @Size(max = 64)
@@ -29,29 +31,4 @@ public class UserDTO implements UserDetails {
     private String email;
     @Size(max = 128)
     private String userPic;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }

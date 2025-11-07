@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/article")
 public class ArticleController {
-    @GetMapping("/")
+    @GetMapping("/1")
     public R<Void> hello() {
         return R.success("this is article page");
     }

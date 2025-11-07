@@ -6,4 +6,6 @@ public interface UserService {
     UserDTO findByName(String name);
 
     int register(UserDTO user);
+
+    int updateBasicInfo(UserDTO updates);
 }
