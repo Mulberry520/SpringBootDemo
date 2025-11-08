@@ -1,5 +1,6 @@
 package com.mulberry.service;
 
+import com.mulberry.dto.UpdateDTO;
 import com.mulberry.dto.UserDTO;
 
 public interface UserService {
@@ -7,5 +8,9 @@ public interface UserService {
 
     int register(UserDTO user);
 
-    int updateBasicInfo(UserDTO updates);
+    String updateBasicInfo(UpdateDTO updates);
+
+    int updateAvatar(String username, String avatarUrl);
+
+    Integer getUserId(String username);
 }

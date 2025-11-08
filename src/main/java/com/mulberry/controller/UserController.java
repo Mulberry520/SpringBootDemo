@@ -7,6 +7,7 @@ import com.mulberry.dto.UserDTO;
 import com.mulberry.service.UserService;
 import com.mulberry.util.JwtUtil;
 import jakarta.validation.Valid;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,28 +58,25 @@ public class UserController {
         return R.success(userService.findByName(username));
     }
 
-    @PostMapping("/update")
+    @PatchMapping("/updateBasic")
     public R<String> update(
             @RequestBody  @Valid UpdateDTO updates,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        String username = userDetails.getUsername();
-        UserDTO updateUer = userService.findByName(username);
-        if (!passwordEncoder.matches(updates.getPassword(), updateUer.getPassword())) {
-            return R.error("Input correct password to chang infos");
+        updates.setUsername(userDetails.getUsername());
+        String errInfo = userService.updateBasicInfo(updates);
+        if (errInfo != null) {
+            return R.error(errInfo);
         }
+        return R.success();
+    }
 
-        String newPassword = updates.getNewPassword();
-        if (newPassword != null) {
-            if (!newPassword.equals(updates.getRepeatPassword())) {
-                return R.error("Repeat the same password to change");
-            }
-            updateUer.setPassword(passwordEncoder.encode(newPassword));
-        }
-        updateUer.setNickname(updates.getNickname());
-        updateUer.setEmail(updates.getEmail());
-        userService.updateBasicInfo(updateUer);
-
-        return R.success("Successfully update your info");
+    @PatchMapping("/updateAvatar")
+    public R<Void> updateAvatar(
+            @RequestParam("avatarUrl") @URL String url,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        userService.updateAvatar(userDetails.getUsername(), url);
+        return R.success();
     }
 }

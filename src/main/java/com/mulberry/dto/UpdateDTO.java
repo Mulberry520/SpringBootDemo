@@ -8,6 +8,10 @@ import lombok.Data;
 
 @Data
 public class UpdateDTO {
+    @Size(min = 4, max = 16)
+    @JsonIgnore
+    private String username;
+
     @NotBlank
     @Size(min = 6, max = 64)
     private String password;

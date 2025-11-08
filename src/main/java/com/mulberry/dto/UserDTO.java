@@ -1,16 +1,12 @@
 package com.mulberry.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.Collections;
+import org.hibernate.validator.constraints.URL;
 
 @Data
 public class UserDTO {
@@ -21,7 +17,7 @@ public class UserDTO {
 
     @NotBlank
     @Size(min = 6, max = 64)
-//    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Size(max = 64)
@@ -29,6 +25,7 @@ public class UserDTO {
     @Email
     @Size(max = 64)
     private String email;
-    @Size(max = 128)
+    @URL
+    @Size(max = 256)
     private String userPic;
 }
