@@ -1,8 +1,8 @@
 package com.mulberry.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mulberry.common.CommonConst;
-import com.mulberry.dto.UserDTO;
-import com.mulberry.service.UserService;
+import com.mulberry.common.R;
 import com.mulberry.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,23 +10,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, ObjectMapper objectMapper) {
         this.jwtUtil = jwtUtil;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -36,32 +34,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
         final String header = request.getHeader("Authorization");
-        String username = null;
-        String token = null;
 
-        if (header != null && header.startsWith(CommonConst.OAuthToken)) {
-            token = header.substring(CommonConst.OAuthToken.length());
-            try {
-                username = jwtUtil.extractUsername(token);
-            } catch (Exception e) {
-                logger.warn("Invalid JWT token: " + e.getMessage());
-            }
+        if (header == null || !header.startsWith(CommonConst.OAuthToken)) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtUtil.validateToken(token)) {
-                UserDetails userDetails = org.springframework.security.core.userdetails.User
-                        .withUsername(username)
-                        .password("")
-                        .authorities("ROLE_USER")
-                        .build();
-
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = header.substring(CommonConst.OAuthToken.length());
+        try {
+            String username = jwtUtil.extractUsername(token);
+            if (!jwtUtil.validateToken(token) || username == null) {
+                sendMessage(response, "Invalid or expired token");
+                return;
             }
-        }
 
-        filterChain.doFilter(request, response);
+            UserDetails userDetails = org.springframework.security.core.userdetails.User
+                    .withUsername(username)
+                    .password("")
+                    .authorities("ROLE_USER")
+                    .build();
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            logger.warn("Invalid JWT token: " + e.getMessage());
+            sendMessage(response, "Malformed or invalid token");
+        }
+    }
+
+    private void sendMessage(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(R.error(message)));
     }
 }

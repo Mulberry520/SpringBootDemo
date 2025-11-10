@@ -81,4 +81,9 @@ public class UserServiceImpl implements UserService {
     public Integer getUserId(String username) {
         return mapper.selectIdByName(username);
     }
+
+    @Override
+    public String getAvatarUrl(String username) {
+        return mapper.selectPicByName(username);
+    }
 }

@@ -8,4 +8,6 @@ public interface FileService {
     String localSave(MultipartFile file) throws IOException;
 
     String ossSave(MultipartFile file) throws IOException;
+
+    String generateSignedUrl(String originUrl);
 }

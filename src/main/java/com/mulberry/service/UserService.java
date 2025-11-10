@@ -13,4 +13,6 @@ public interface UserService {
     int updateAvatar(String username, String avatarUrl);
 
     Integer getUserId(String username);
+
+    String getAvatarUrl(String username);
 }

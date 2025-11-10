@@ -4,7 +4,6 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
-import java.util.Date;
 
 public class TimingFilter implements Filter {
 
@@ -16,11 +15,10 @@ public class TimingFilter implements Filter {
     ) throws IOException, ServletException {
         long startTime = System.currentTimeMillis();
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        System.out.println("Request URL: " + request.getRequestURI());
 
         filterChain.doFilter(servletRequest, servletResponse);
 
         long totalTime = System.currentTimeMillis() - startTime;
-        System.out.println("Total time = " + totalTime + "ms");
+        System.out.printf("Total time:%6dms    Request url: %s\n", totalTime, request.getRequestURI());
     }
 }

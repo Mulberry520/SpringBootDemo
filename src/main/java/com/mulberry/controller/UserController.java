@@ -4,6 +4,7 @@ import com.mulberry.common.R;
 import com.mulberry.dto.LoginDTO;
 import com.mulberry.dto.UpdateDTO;
 import com.mulberry.dto.UserDTO;
+import com.mulberry.service.FileService;
 import com.mulberry.service.UserService;
 import com.mulberry.util.JwtUtil;
 import jakarta.validation.Valid;
@@ -19,11 +20,13 @@ public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final FileService fileService;
 
-    public UserController(PasswordEncoder passwordEncoder, UserService userService, JwtUtil jwtUtil) {
+    public UserController(PasswordEncoder passwordEncoder, UserService userService, JwtUtil jwtUtil, FileService fileService) {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.fileService = fileService;
     }
 
     @PostMapping("/register")
@@ -58,7 +61,7 @@ public class UserController {
         return R.success(userService.findByName(username));
     }
 
-    @PatchMapping("/updateBasic")
+    @PatchMapping("/userinfo")
     public R<String> update(
             @RequestBody  @Valid UpdateDTO updates,
             @AuthenticationPrincipal UserDetails userDetails
@@ -71,12 +74,24 @@ public class UserController {
         return R.success();
     }
 
-    @PatchMapping("/updateAvatar")
+    @PatchMapping("/avatar")
     public R<Void> updateAvatar(
-            @RequestParam("avatarUrl") @URL String url,
+            @RequestParam("avatarName") String avatar,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        userService.updateAvatar(userDetails.getUsername(), url);
+        userService.updateAvatar(userDetails.getUsername(), avatar);
         return R.success();
+    }
+
+    @GetMapping("/avatar")
+    public R<String> getAvatar(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String avatar = userService.getAvatarUrl(userDetails.getUsername());
+        if (avatar == null || avatar.length() < 20) {
+            return R.error("You haven't post a valid avatar");
+        }
+        String signedUrl = fileService.generateSignedUrl(avatar);
+        return R.success(signedUrl);
     }
 }

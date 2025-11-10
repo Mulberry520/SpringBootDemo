@@ -25,7 +25,6 @@ public class UserDTO {
     @Email
     @Size(max = 64)
     private String email;
-    @URL
     @Size(max = 256)
     private String userPic;
 }

@@ -9,8 +9,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -21,6 +23,8 @@ public class FileServiceImpl implements FileService {
     private String bucketName;
     @Value("${oss.target-url}")
     private String targetUrl;
+    @Value("${oss.expiration}")
+    private int expiration;
 
     private final OSS ossClient;
 
@@ -66,11 +70,16 @@ public class FileServiceImpl implements FileService {
     public String ossSave(MultipartFile file) throws IOException {
         String savedName = getRandomName(file);
 
-        PutObjectRequest objectRequest = new PutObjectRequest(bucketName, savedName, file.getInputStream());
+        PutObjectRequest objectRequest = new PutObjectRequest(this.bucketName, savedName, file.getInputStream());
         ossClient.putObject(objectRequest);
 
-        return targetUrl + savedName;
+        return savedName;
     }
 
-
+    @Override
+    public String generateSignedUrl(String objectKey) {
+        Date expirationTime = new Date(System.currentTimeMillis() + this.expiration);
+        URL url = ossClient.generatePresignedUrl(bucketName, objectKey, expirationTime);
+        return url.toString();
+    }
 }

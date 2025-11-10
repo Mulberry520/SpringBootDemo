@@ -11,6 +11,9 @@ public interface UserMapper {
     @Select("select id from users where username = #{username}")
     Integer selectIdByName(@Param("username") String name);
 
+    @Select("select user_pic from users where username = #{username}")
+    String selectPicByName(@Param("username") String name);
+
     @Insert("insert into users (username, password, nickname, email) values (#{username}, #{password}, #{nickname}, #{email})")
     int insertWithBasicInfo(
             @Param("username") String name,

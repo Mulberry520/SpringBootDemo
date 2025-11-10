@@ -3,7 +3,6 @@ package com.mulberry.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -39,10 +38,7 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            if (isTokenExpired(token)) {
-                return false;
-            }
-            return true;
+            return !isTokenExpired(token);
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
@@ -62,7 +58,7 @@ public class JwtUtil {
         }
 
         return Jwts.builder()
-                .setSubject(username.trim())
+                .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(getSigningKey())
