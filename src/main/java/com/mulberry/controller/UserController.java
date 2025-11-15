@@ -1,5 +1,6 @@
 package com.mulberry.controller;
 
+import com.mulberry.common.CommonConst;
 import com.mulberry.common.R;
 import com.mulberry.dto.LoginDTO;
 import com.mulberry.dto.UpdateDTO;
@@ -8,11 +9,14 @@ import com.mulberry.service.FileService;
 import com.mulberry.service.UserService;
 import com.mulberry.util.JwtUtil;
 import jakarta.validation.Valid;
-import org.hibernate.validator.constraints.URL;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/user")
@@ -21,12 +25,20 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final FileService fileService;
+    private final StringRedisTemplate redisTemplate;
 
-    public UserController(PasswordEncoder passwordEncoder, UserService userService, JwtUtil jwtUtil, FileService fileService) {
+    public UserController(
+            PasswordEncoder passwordEncoder,
+            UserService userService,
+            JwtUtil jwtUtil,
+            FileService fileService,
+            StringRedisTemplate redisTemplate
+    ) {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.fileService = fileService;
+        this.redisTemplate = redisTemplate;
     }
 
     @PostMapping("/register")
@@ -52,7 +64,24 @@ public class UserController {
         if (!passwordEncoder.matches(loginInfo.getPassword(), target.getPassword())) {
             return R.error("Wrong password");
         }
-        return R.success(jwtUtil.generateToken(username));
+
+        String token = jwtUtil.generateToken(username);
+        redisTemplate.opsForValue().set(token, username, jwtUtil.getExpiration(), TimeUnit.MILLISECONDS);
+        return R.success("Keep your token", token);
+    }
+
+    @GetMapping("/logout")
+    public R<String> logout(
+            @RequestParam(name = "isLogout", defaultValue = "false") Boolean isLogout,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        System.out.println("isLogout = " + isLogout);
+        if (isLogout) {
+            String token = authorization.substring(CommonConst.OAuthToken.length());
+            redisTemplate.delete(token);
+            return R.success("Logout safely");
+        }
+        return R.success("Haven't logout now");
     }
 
     @GetMapping("/userinfo")
@@ -64,24 +93,21 @@ public class UserController {
     @PatchMapping("/userinfo")
     public R<String> update(
             @RequestBody  @Valid UpdateDTO updates,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestHeader("Authorization") String authorization
     ) {
-        updates.setUsername(userDetails.getUsername());
+        String username = userDetails.getUsername();
+        updates.setUsername(username);
         String errInfo = userService.updateBasicInfo(updates);
         if (errInfo != null) {
             return R.error(errInfo);
         }
+
+        String token = authorization.substring(CommonConst.OAuthToken.length());
+        redisTemplate.delete(token);
         return R.success();
     }
 
-    @PatchMapping("/avatar")
-    public R<Void> updateAvatar(
-            @RequestParam("avatarName") String avatar,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
-        userService.updateAvatar(userDetails.getUsername(), avatar);
-        return R.success();
-    }
 
     @GetMapping("/avatar")
     public R<String> getAvatar(
@@ -91,7 +117,22 @@ public class UserController {
         if (avatar == null || avatar.length() < 20) {
             return R.error("You haven't post a valid avatar");
         }
+
         String signedUrl = fileService.generateSignedUrl(avatar);
-        return R.success(signedUrl);
+        return R.success("This is your avatar's temp url", signedUrl);
+    }
+
+    @PatchMapping("/avatar")
+    public R<String> updateAvatar(
+            @RequestParam("file") MultipartFile avatar,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        try {
+            String avatarUrl = fileService.ossSave(avatar, FileService.Category.AVATAR);
+            userService.updateAvatar(userDetails.getUsername(), avatarUrl);
+            return R.success();
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 }

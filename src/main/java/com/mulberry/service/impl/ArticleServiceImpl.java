@@ -68,16 +68,12 @@ public class ArticleServiceImpl implements ArticleService {
         }
         String newTitle = updates.getTitle();
         String newContent = updates.getContent();
-        String newCover = updates.getCoverImg();
         String newState = updates.getState();
         if (newTitle != null) {
             targetArticle.setTitle(newTitle);
         }
         if (newContent != null) {
             targetArticle.setContent(newContent);
-        }
-        if (newCover != null) {
-            targetArticle.setCoverImg(newCover);
         }
         if (newState != null) {
             targetArticle.setState(newState);
@@ -95,6 +91,16 @@ public class ArticleServiceImpl implements ArticleService {
             return null;
         }
         return "Update article failed";
+    }
+
+    @Override
+    public String getCover(Integer articleId, Integer userId) {
+        return mapper.selectCoverByIdAndName(articleId, userId);
+    }
+
+    @Override
+    public int updateCover(Integer articleId, Integer userId, String coverUrl) {
+        return mapper.updateCoverByIdAndName(articleId, userId, coverUrl);
     }
 
     @Override

@@ -64,4 +64,8 @@ public class JwtUtil {
                 .signWith(getSigningKey())
                 .compact();
     }
+
+    public long getExpiration() {
+        return EXPIRATION;
+    }
 }

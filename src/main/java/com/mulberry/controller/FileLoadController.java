@@ -35,15 +35,12 @@ public class FileLoadController {
     public R<String> uploadToCloud(
             @RequestParam("file") MultipartFile file
     ) {
-        String fileUrl;
-
         try {
-            fileUrl = fileService.ossSave(file);
+            String fileUrl = fileService.ossSave(file, FileService.Category.RESOURCE);
+            return R.success(fileUrl);
         } catch (IOException e) {
             return R.error(e.getMessage());
         }
-
-        return R.success(fileUrl);
     }
 
 

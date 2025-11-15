@@ -14,8 +14,6 @@ public class ArticleUpdateDTO {
     private String title;
     @Size(max = 10000)
     private String content;
-    @URL
-    private String coverImg;
     @Size(max = 32)
     private String state;
     private Integer categoryId;

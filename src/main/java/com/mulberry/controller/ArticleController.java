@@ -5,11 +5,13 @@ import com.mulberry.dto.ArticleDTO;
 import com.mulberry.dto.ArticleSimpleDTO;
 import com.mulberry.dto.ArticleUpdateDTO;
 import com.mulberry.service.ArticleService;
+import com.mulberry.service.FileService;
 import com.mulberry.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,10 +20,16 @@ import java.util.List;
 public class ArticleController {
     private final ArticleService articleService;
     private final UserService userService;
+    private final FileService fileService;
 
-    public ArticleController(ArticleService articleService, UserService userService) {
+    public ArticleController(
+            ArticleService articleService,
+            UserService userService,
+            FileService fileService
+    ) {
         this.articleService = articleService;
         this.userService = userService;
+        this.fileService = fileService;
     }
 
     @GetMapping("/all")
@@ -74,18 +82,43 @@ public class ArticleController {
     }
 
     @PatchMapping("/{id}")
-    public R<String> updateArticle(
+    public R<Void> updateArticle(
             @PathVariable("id") Integer articleId,
-            @RequestBody @Valid ArticleUpdateDTO updates,
+            @RequestBody ArticleUpdateDTO updates,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         updates.setId(articleId);
         updates.setCreateUser(userService.getUserId(userDetails.getUsername()));
+        articleService.updateArticle(updates);
+        return R.success();
+    }
 
-        String errInfo = articleService.updateArticle(updates);
-        if (errInfo == null) {
-            return R.success();
+    @GetMapping("/{id}/cover")
+    public R<String> getCover(
+            @PathVariable("id") Integer articleId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String coverUrl = articleService.getCover(articleId, userService.getUserId(userDetails.getUsername()));
+        if (coverUrl == null || coverUrl.length() < 20) {
+            return R.error("You haven't post a valid cover");
         }
-        return R.error(errInfo);
+
+        String signedCover = fileService.generateSignedUrl(coverUrl);
+        return R.success("This is your cover's temp url", signedCover);
+    }
+
+    @PatchMapping("/{id}/cover")
+    public R<String> updateCover(
+            @PathVariable("id") Integer articleId,
+            @RequestParam("file") MultipartFile cover,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        try {
+            String coverUrl = fileService.ossSave(cover, FileService.Category.COVER);
+            articleService.updateCover(articleId, userService.getUserId(userDetails.getUsername()), coverUrl);
+            return R.success();
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 }

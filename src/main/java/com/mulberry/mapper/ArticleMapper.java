@@ -43,4 +43,17 @@ public interface ArticleMapper {
             @Param("category_id") Integer categoryId,
             @Param("id") Integer articleId
     );
+
+    @Select("select cover_img from article where id = #{id} and create_user = #{create_user}")
+    String selectCoverByIdAndName(
+            @Param("id") Integer articleId,
+            @Param("create_user") Integer userId
+    );
+
+    @Update("update article set cover_img = #{cover_img} where id = #{id} and create_user = #{create_user}")
+    int updateCoverByIdAndName(
+            @Param("id") Integer articleId,
+            @Param("create_user") Integer userId,
+            @Param("cover_img") String coverUrl
+    );
 }

@@ -16,4 +16,8 @@ public interface ArticleService {
     int addArticle(ArticleDTO article);
 
     String updateArticle(ArticleUpdateDTO updates);
+
+    String getCover(Integer articleId, Integer userId);
+
+    int updateCover(Integer articleId, Integer userId, String coverUrl);
 }

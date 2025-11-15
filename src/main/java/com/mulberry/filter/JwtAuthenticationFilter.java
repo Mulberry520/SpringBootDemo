@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,10 +22,16 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper;
+    private final StringRedisTemplate redisTemplate;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, ObjectMapper objectMapper) {
+    public JwtAuthenticationFilter(
+            JwtUtil jwtUtil,
+            ObjectMapper objectMapper,
+            StringRedisTemplate redisTemplate
+    ) {
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -45,6 +52,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = jwtUtil.extractUsername(token);
             if (!jwtUtil.validateToken(token) || username == null) {
                 sendMessage(response, "Invalid or expired token");
+                return;
+            }
+            String tokenOwner = redisTemplate.opsForValue().get(token);
+            if (!username.equals(tokenOwner)) {
+                sendMessage(response, "Token expired");
                 return;
             }
 
